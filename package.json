@@ -1,17 +1,35 @@
-{
-  "name": "mare-alta",
-  "version": "1.0.0",
-  "private": true,
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start"
-  },
-  "dependencies": {
-    "@vercel/kv": "^1.0.1",
-    "lucide-react": "^0.383.0",
-    "next": "14.2.5",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+import { Redis } from "@upstash/redis";
+
+const redis = new Redis({
+  url: process.env.KV_REST_API_URL,
+  token: process.env.KV_REST_API_TOKEN,
+});
+
+function fullKey(key) {
+  return `mare-alta:${key}`;
+}
+
+export default async function handler(req, res) {
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Método não permitido" });
+  }
+  const { action, key, value } = req.body || {};
+  if (!action || !key) {
+    return res.status(400).json({ error: "Parâmetros ausentes" });
+  }
+
+  try {
+    if (action === "get") {
+      const v = await redis.get(fullKey(key));
+      return res.status(200).json({ value: v ?? null });
+    }
+    if (action === "set") {
+      await redis.set(fullKey(key), value);
+      return res.status(200).json({ ok: true });
+    }
+    return res.status(400).json({ error: "Ação inválida" });
+  } catch (e) {
+    console.error("storage api error", e);
+    return res.status(500).json({ error: "Falha no armazenamento: " + (e && e.message) });
   }
 }
