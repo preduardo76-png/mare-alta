@@ -1,4 +1,9 @@
-import { kv } from "@vercel/kv";
+import { Redis } from "@upstash/redis";
+
+const redis = new Redis({
+  url: process.env.KV_REST_API_URL,
+  token: process.env.KV_REST_API_TOKEN,
+});
 
 // Todas as chaves deste app são compartilhadas entre usuários (users, properties,
 // reservations), então usamos sempre um prefixo fixo simples.
@@ -17,16 +22,16 @@ export default async function handler(req, res) {
 
   try {
     if (action === "get") {
-      const v = await kv.get(fullKey(key));
+      const v = await redis.get(fullKey(key));
       return res.status(200).json({ value: v ?? null });
     }
     if (action === "set") {
-      await kv.set(fullKey(key), value);
+      await redis.set(fullKey(key), value);
       return res.status(200).json({ ok: true });
     }
     return res.status(400).json({ error: "Ação inválida" });
   } catch (e) {
     console.error("storage api error", e);
-    return res.status(500).json({ error: "Falha no armazenamento. Verifique se o Vercel KV está configurado (variáveis KV_* nas Environment Variables)." });
+    return res.status(500).json({ error: "Falha no armazenamento: " + (e && e.message) });
   }
 }
