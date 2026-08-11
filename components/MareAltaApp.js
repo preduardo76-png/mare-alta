@@ -141,15 +141,7 @@ export default function App() {
 
   const [syncing, setSyncing] = useState(false);
   const refetchAll = useCallback(async (silent) => {
-    if (!silent) setSyncing(true);
-    const [u, p, r] = await Promise.all([
-      loadJSON("users", true, {}),
-      loadJSON("properties", true, []),
-      loadJSON("reservations", true, []),
-    ]);
-    setUsers(u);
-    setProperties(p);
-    setReservations(r);
+   if (!silent) setSyncing(true); const [p, r] = await Promise.all([ loadJSON("properties", true, []), loadJSON("reservations", true, []), ]); setProperties(p); setReservations(r); 
     if (!silent) setSyncing(false);
   }, []);
 
