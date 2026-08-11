@@ -9,19 +9,20 @@ function fullKey(key) {
   return `mare-alta:${key}`;
 }
 
-export default async function handler(req, res) {
-  console.log("[storage] chamada recebida", {
-    method: req.method,
-    hasUrl: !!process.env.KV_REST_API_URL,
-    hasToken: !!process.env.KV_REST_API_TOKEN,
-  });
+function safeUserList(jsonStringOrObj) {
+  try {
+    const obj = typeof jsonStringOrObj === "string" ? JSON.parse(jsonStringOrObj) : jsonStringOrObj;
+    return Object.keys(obj || {});
+  } catch (e) {
+    return ["(não foi possível ler: " + e.message + ")"];
+  }
+}
 
+export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Método não permitido" });
   }
   const { action, key, value } = req.body || {};
-  console.log("[storage] action=" + action + " key=" + key + " valueLen=" + (value ? String(value).length : 0));
-
   if (!action || !key) {
     return res.status(400).json({ error: "Parâmetros ausentes" });
   }
@@ -29,19 +30,27 @@ export default async function handler(req, res) {
   try {
     if (action === "get") {
       const v = await redis.get(fullKey(key));
-      console.log("[storage] GET resultado para " + fullKey(key) + ": " + (v ? "encontrado, tamanho " + String(v).length : "vazio/null"));
+      if (key === "users") {
+        console.log("[storage] GET users -> usuários encontrados: " + JSON.stringify(safeUserList(v)));
+      } else {
+        console.log("[storage] GET " + key + " -> " + (v ? "tem dado" : "vazio"));
+      }
       return res.status(200).json({ value: v ?? null });
     }
     if (action === "set") {
-      const setResult = await redis.set(fullKey(key), value);
-      console.log("[storage] SET resultado para " + fullKey(key) + ": " + JSON.stringify(setResult));
+      if (key === "users") {
+        console.log("[storage] SET users -> vai salvar usuários: " + JSON.stringify(safeUserList(value)));
+      }
+      await redis.set(fullKey(key), value);
       const readBack = await redis.get(fullKey(key));
-      console.log("[storage] confirmação de leitura pós-gravação: " + (readBack ? "OK, presente" : "AUSENTE! não gravou de verdade"));
+      if (key === "users") {
+        console.log("[storage] SET users -> confirmado após salvar: " + JSON.stringify(safeUserList(readBack)));
+      }
       return res.status(200).json({ ok: true });
     }
     return res.status(400).json({ error: "Ação inválida" });
   } catch (e) {
-    console.error("[storage] ERRO: " + (e && e.message) + " | " + JSON.stringify(e));
+    console.error("[storage] ERRO: " + (e && e.message));
     return res.status(500).json({ error: "Falha no armazenamento: " + (e && e.message) });
   }
 }
