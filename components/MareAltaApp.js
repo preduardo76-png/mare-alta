@@ -83,7 +83,7 @@ function nightsBetween(aISO, bISO) {
 async function loadJSON(key, shared, fallback) {
   try {
     const res = await window.storage.get(key, shared);
-    return res && res.value ? JSON.parse(res.value) : fallback;
+     if (!res || res.value === null || res.value === undefined) return fallback; if (typeof res.value === "string") return JSON.parse(res.value); return res.value;
   } catch (e) {
     return fallback;
   }
