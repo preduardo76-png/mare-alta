@@ -33,24 +33,7 @@ const MONTH_NAMES = [
 const WEEK_NAMES = ["D", "S", "T", "Q", "Q", "S", "S"];
 
 function getSeasonMonths() {
-  const today = new Date();
-  const y = today.getFullYear();
-  const m = today.getMonth();
-  let startYear;
-  if (m >= 3 && m <= 10) {
-    startYear = y;
-  } else if (m === 11) {
-    startYear = y;
-  } else {
-    startYear = y - 1;
-  }
-  return [
-    { year: startYear, month: 11 },
-    { year: startYear + 1, month: 0 },
-    { year: startYear + 1, month: 1 },
-    { year: startYear + 1, month: 2 },
-  ];
-}
+const today = new Date(); let y = today.getFullYear(); let m = today.getMonth(); const months = []; for (let i = 0; i < 12; i++) { months.push({ year: y, month: m }); m++; if (m > 11) { m = 0; y++; } } return months;  
 
 function toDateOnly(d) {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate());
@@ -634,7 +617,7 @@ function CalendarTab({
 
   return (
     <div>
-      <h2 style={styles.h2}>Calendário de temporada (dez–mar)</h2>
+      <h2 style={styles.h2}>Calendário (próximos 12 meses)</h2>
 
       <label className="field" style={{ maxWidth: 380, marginBottom: 16 }}>
         <span>Imóvel</span>
