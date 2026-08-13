@@ -586,7 +586,7 @@ function CalendarTab({
   for (let i = 0; i < firstWeekday; i++) cells.push(null);
   for (let d = 1; d <= daysInMonth; d++) cells.push(new Date(year, month, d));
 
-  const seasonEndISO = fmtISO(new Date(seasonMonths[3].year, seasonMonths[3].month + 1, 0));
+  const seasonEndISO = fmtISO(new Date(seasonMonths[11].year, seasonMonths[11].month + 1, 0));
 
   const allSeasonDays = [];
   seasonMonths.forEach(({ year: y, month: m }) => {
@@ -674,7 +674,7 @@ function CalendarTab({
                 <ChevronLeft size={16} />
               </button>
               <strong>{MONTH_NAMES[month]} / {year}</strong>
-              <button className="btnGhost" disabled={monthIdx === 3} onClick={() => setMonthIdx((i) => Math.min(3, i + 1))}>
+              <button className="btnGhost" disabled={monthIdx === 11} onClick={() => setMonthIdx((i) => Math.min(11, i + 1))}>
                 <ChevronRight size={16} />
               </button>
             </div>
