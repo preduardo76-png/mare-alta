@@ -191,7 +191,7 @@ export default function App() {
     } else {
       const u = users[uname];
       if (!u || u.pass !== obf(authForm.password)) {
-        setAuthError("Usuário ou senha incorretos.");
+      setAuthError("Usuário ou senha incorretos. [debug: usuarios=" + JSON.stringify(Object.keys(users)) + " | procurando=" + uname + "]"); 
         return;
       }
       setCurrentUser({ username: uname, role: u.role });
