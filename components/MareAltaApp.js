@@ -33,7 +33,7 @@ const MONTH_NAMES = [
 const WEEK_NAMES = ["D", "S", "T", "Q", "Q", "S", "S"];
 
 function getSeasonMonths() {
-const today = new Date(); let y = today.getFullYear(); let m = today.getMonth(); const months = []; for (let i = 0; i < 12; i++) { months.push({ year: y, month: m }); m++; if (m > 11) { m = 0; y++; } } return months;  
+const today = new Date(); let y = today.getFullYear(); let m = today.getMonth(); const months = []; for (let i = 0; i < 12; i++) { months.push({ year: y, month: m }); m++; if (m > 11) { m = 0; y++; } } return months;
 
 function toDateOnly(d) {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate());
