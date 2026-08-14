@@ -33,8 +33,18 @@ const MONTH_NAMES = [
 const WEEK_NAMES = ["D", "S", "T", "Q", "Q", "S", "S"];
 
 function getSeasonMonths() {
-const today = new Date(); let y = today.getFullYear(); let m = today.getMonth(); const months = []; for (let i = 0; i < 12; i++) { months.push({ year: y, month: m }); m++; if (m > 11) { m = 0; y++; } } return months;
+  const today = new Date();
+  let y = today.getFullYear();
+  let m = today.getMonth();
+  const months = [];
+  for (let i = 0; i < 12; i++) {
+    months.push({ year: y, month: m });
+    m++;
+    if (m > 11) { m = 0; y++; }
+  }
+  return months;
 }
+
 function toDateOnly(d) {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate());
 }
@@ -66,7 +76,9 @@ function nightsBetween(aISO, bISO) {
 async function loadJSON(key, shared, fallback) {
   try {
     const res = await window.storage.get(key, shared);
-     if (!res || res.value === null || res.value === undefined) return fallback; if (typeof res.value === "string") return JSON.parse(res.value); return res.value;
+    if (!res || res.value === null || res.value === undefined) return fallback;
+    if (typeof res.value === "string") return JSON.parse(res.value);
+    return res.value;
   } catch (e) {
     return fallback;
   }
@@ -80,9 +92,15 @@ async function saveJSON(key, shared, value) {
 }
 
 // ---------- app ----------
-export default function App() {
+// tenantCode identifica a empresa (vem do link /empresa/CODIGO). Cada código
+// tem seus próprios dados, totalmente separados dos outros.
+export default function App({ tenantCode }) {
+  const safeTenant = (tenantCode || "default").toLowerCase().replace(/[^a-z0-9-_]/g, "");
+  const K = (name) => `${safeTenant}:${name}`;
+
   const [booting, setBooting] = useState(true);
   const [tick, setTick] = useState(0);
+  const [license, setLicense] = useState(null);
 
   const [users, setUsers] = useState({});
   const [properties, setProperties] = useState([]);
@@ -110,23 +128,42 @@ export default function App() {
 
   useEffect(() => {
     (async () => {
-      const [u, p, r] = await Promise.all([
-        loadJSON("users", true, {}),
-        loadJSON("properties", true, []),
-        loadJSON("reservations", true, []),
+      const [u, p, r, lic] = await Promise.all([
+        loadJSON(K("users"), true, {}),
+        loadJSON(K("properties"), true, []),
+        loadJSON(K("reservations"), true, []),
+        loadJSON(K("license"), true, null),
       ]);
       setUsers(u);
       setProperties(p);
       setReservations(r);
+      // Na primeira vez que essa empresa (tenantCode) é acessada, cria a
+      // licença com validade de 365 dias a partir de agora. Depois disso,
+      // essa data fica fixa até alguém (o fornecedor) renová-la manualmente.
+      let finalLicense = lic;
+      if (!finalLicense) {
+        const expiresAt = Date.now() + 365 * 24 * 60 * 60 * 1000;
+        finalLicense = { expiresAt, createdAt: Date.now() };
+        await saveJSON(K("license"), true, finalLicense);
+      }
+      setLicense(finalLicense);
       setBooting(false);
     })();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [safeTenant]);
 
   const [syncing, setSyncing] = useState(false);
   const refetchAll = useCallback(async (silent) => {
-   if (!silent) setSyncing(true); const [p, r] = await Promise.all([ loadJSON("properties", true, []), loadJSON("reservations", true, []), ]); setProperties(p); setReservations(r); 
+    if (!silent) setSyncing(true);
+    const [p, r] = await Promise.all([
+      loadJSON(K("properties"), true, []),
+      loadJSON(K("reservations"), true, []),
+    ]);
+    setProperties(p);
+    setReservations(r);
     if (!silent) setSyncing(false);
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [safeTenant]);
 
   useEffect(() => {
     const t = setInterval(() => { refetchAll(true); setTick((n) => n + 1); }, 15000);
@@ -144,16 +181,19 @@ export default function App() {
 
   const persistReservations = useCallback(async (next) => {
     setReservations(next);
-    await saveJSON("reservations", true, next);
-  }, []);
+    await saveJSON(K("reservations"), true, next);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [safeTenant]);
   const persistProperties = useCallback(async (next) => {
     setProperties(next);
-    await saveJSON("properties", true, next);
-  }, []);
+    await saveJSON(K("properties"), true, next);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [safeTenant]);
   const persistUsers = useCallback(async (next) => {
     setUsers(next);
-    await saveJSON("users", true, next);
-  }, []);
+    await saveJSON(K("users"), true, next);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [safeTenant]);
 
   function handleAuthSubmit(e) {
     if (e && e.preventDefault) e.preventDefault();
@@ -174,7 +214,7 @@ export default function App() {
     } else {
       const u = users[uname];
       if (!u || u.pass !== obf(authForm.password)) {
-      setAuthError("Usuário ou senha incorretos. [debug: usuarios=" + JSON.stringify(Object.keys(users)) + " | procurando=" + uname + "]"); 
+        setAuthError("Usuário ou senha incorretos.");
         return;
       }
       setCurrentUser({ username: uname, role: u.role });
@@ -318,6 +358,20 @@ export default function App() {
     );
   }
 
+  const licenseExpired = license && Date.now() > license.expiresAt;
+  if (licenseExpired) {
+    return (
+      <div style={styles.bootWrap}>
+        <StyleBlock />
+        <AlertTriangle size={40} color="#F2E9DC" />
+        <p style={{ color: "#F2E9DC", fontFamily: "Inter, sans-serif", marginTop: 12, textAlign: "center", padding: "0 20px", lineHeight: 1.6 }}>
+          Licença expirada.<br />
+          Entre em contato com o fornecedor do sistema para renovar o acesso.
+        </p>
+      </div>
+    );
+  }
+
   if (!currentUser) {
     return (
       <div style={styles.authWrap}>
@@ -392,6 +446,9 @@ export default function App() {
       <header style={styles.header}>
         <Logo compact />
         <div style={styles.headerRight}>
+          <span style={{ fontSize: 10.5, color: "#F2E9DC", opacity: 0.6, fontFamily: "monospace" }}>
+            tenant: {safeTenant}
+          </span>
           <button className="btnGhost small" onClick={() => refetchAll(false)} title="Buscar atualizações agora" style={{ color: "#F2E9DC", borderColor: "rgba(242,233,220,0.35)" }}>
             {syncing ? "Sincronizando…" : "Atualizar"}
           </button>
