@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import Head from "next/head";
 
 // Troque essa senha por uma só sua antes de publicar (é só um texto simples
 // aqui no código — não é super seguro, mas serve bem pra afastar acesso
@@ -162,7 +163,14 @@ export default function PainelMestre() {
 
   if (!authed) {
     return (
-      <div style={styles.wrap}>
+      <>
+        <Head>
+          <link rel="manifest" href="/manifest-mestre.json" />
+          <link rel="apple-touch-icon" href="/icons/icon-mestre-192.png" />
+          <meta name="theme-color" content="#8A4B1F" />
+          <meta name="apple-mobile-web-app-title" content="Painel Mestre" />
+        </Head>
+        <div style={styles.wrap}>
         <div style={styles.card}>
           <h1 style={styles.h1}>Painel mestre</h1>
           <p style={styles.sub}>Acesso restrito — gestão de licenças por empresa.</p>
@@ -179,12 +187,20 @@ export default function PainelMestre() {
             <button type="submit" style={styles.btnPrimary}>Entrar</button>
           </form>
         </div>
-      </div>
+        </div>
+      </>
     );
   }
 
   return (
-    <div style={styles.wrap}>
+    <>
+      <Head>
+        <link rel="manifest" href="/manifest-mestre.json" />
+        <link rel="apple-touch-icon" href="/icons/icon-mestre-192.png" />
+        <meta name="theme-color" content="#8A4B1F" />
+        <meta name="apple-mobile-web-app-title" content="Painel Mestre" />
+      </Head>
+      <div style={styles.wrap}>
       <div style={{ ...styles.card, maxWidth: 720 }}>
         <h1 style={styles.h1}>Painel mestre</h1>
         <p style={styles.sub}>Defina o período de acesso de cada empresa cliente.</p>
@@ -287,6 +303,7 @@ export default function PainelMestre() {
         </div>
       </div>
     </div>
+    </>
   );
 }
 
