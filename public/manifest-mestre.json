@@ -1,0 +1,17 @@
+{
+  "name": "Painel Mestre - Maré Alta",
+  "short_name": "Painel Mestre",
+  "description": "Gestão de licenças das empresas clientes",
+  "start_url": "/painel-mestre",
+  "scope": "/painel-mestre",
+  "display": "standalone",
+  "background_color": "#F2E9DC",
+  "theme_color": "#8A4B1F",
+  "orientation": "portrait-primary",
+  "icons": [
+    { "src": "/icons/icon-mestre-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-mestre-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/icons/icon-mestre-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-mestre-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
