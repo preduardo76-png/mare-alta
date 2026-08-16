@@ -166,7 +166,7 @@ export default function PainelMestre() {
       <>
         <Head>
           <link rel="manifest" href="/manifest-mestre.json" />
-          <link rel="apple-touch-icon" href="/icons/icon-mestre-192.png" />
+          <link rel="apple-touch-icon" href="/icon-mestre-192.png" />
           <meta name="theme-color" content="#8A4B1F" />
           <meta name="apple-mobile-web-app-title" content="Painel Mestre" />
         </Head>
@@ -196,7 +196,7 @@ export default function PainelMestre() {
     <>
       <Head>
         <link rel="manifest" href="/manifest-mestre.json" />
-        <link rel="apple-touch-icon" href="/icons/icon-mestre-192.png" />
+        <link rel="apple-touch-icon" href="/icon-mestre-192.png" />
         <meta name="theme-color" content="#8A4B1F" />
         <meta name="apple-mobile-web-app-title" content="Painel Mestre" />
       </Head>
